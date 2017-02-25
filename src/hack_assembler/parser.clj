@@ -22,9 +22,11 @@
   "parses the source assembly string into a command map
   containing the type and parts of the instruction"
   [source]
-  (if (= (subs source 0 1) "@")
-    (parse-a-instruction source)
-    (parse-c-instruction source)))
+  (if (= source "")
+    nil
+    (if (= (subs source 0 1) "@")
+      (parse-a-instruction source)
+      (parse-c-instruction source))))
 
 (defn parse-a-instruction
   "parses the source assembly into an A Instruction map
@@ -44,3 +46,12 @@
      :dest dest
      :comp comp
      :jump jump}))
+
+(defn parse-line
+  "Parses an instruction from source line. If the line contains
+  a command, a command map is returned. If the line contains
+  only comments or whitespace, nil is returned"
+  [source]
+  (-> source
+      extract-instruction
+      parse-instruction))
