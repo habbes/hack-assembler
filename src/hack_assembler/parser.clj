@@ -18,7 +18,6 @@
       s/trim                                                ; remove outer whitespace
       (s/replace #"\s+" "")))                                 ; remove internal whitespace
       
-  
 (defn parse-instruction
   "parses the source assembly string into a command map
   containing the type and parts of the instruction"
@@ -38,7 +37,6 @@
      :address (Integer/parseInt label)} 
     nil))
 
-
 (defn parse-c-instruction
   "parses the source assembly string into a C Instruction map
   containing the type C_COMMAND and the dest, comp and jump parts"
@@ -50,7 +48,6 @@
      :jump jump} 
     nil))
     
-
 (defn parse-line
   "Parses an instruction from source line. If the line contains
   a command, a command map is returned. If the line contains
