@@ -71,7 +71,8 @@
   [{type :type :as instruction}]
   (case type
     "A_COMMAND" (translate-a-instruction instruction)
-    "C_COMMAND" (translate-c-instruction instruction)))
+    "C_COMMAND" (translate-c-instruction instruction)
+    nil))
   
    
    

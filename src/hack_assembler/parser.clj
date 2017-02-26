@@ -1,6 +1,7 @@
 (ns hack-assembler.parser
   (:require [clojure.string :as s]))
 
+(def a-inst-re #"@(\w+)")
 ; regex used to parse a c instruction
 (def c-inst-re #"(?:([AMD]{1,3})\=)?([AMD01+\-]+)(?:;([A-Z]{3}))?")
 
@@ -32,20 +33,23 @@
   "parses the source assembly into an A Instruction map
   containing the type A_COMMAND and the address part"
   [source]
-  (let [address (Integer/parseInt (subs source 1))]
+  (if-let [[_ label] (re-matches a-inst-re source)]
     {:type    "A_COMMAND"
-     :address address}))
+     :address (Integer/parseInt label)} 
+    nil))
 
 
 (defn parse-c-instruction
   "parses the source assembly string into a C Instruction map
   containing the type C_COMMAND and the dest, comp and jump parts"
   [source]
-  (let [[_ dest comp jump] (re-matches c-inst-re source)]
+  (if-let [[_ dest comp jump] (re-matches c-inst-re source)]
     {:type "C_COMMAND"
      :dest dest
      :comp comp
-     :jump jump}))
+     :jump jump} 
+    nil))
+    
 
 (defn parse-line
   "Parses an instruction from source line. If the line contains
