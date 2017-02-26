@@ -1,5 +1,5 @@
 (ns hack-assembler.code
-  (:require (hack-assembler.util :as util)))
+  (:require [hack-assembler.util :as util]))
 
 (def dest-map
   {nil "000"
@@ -16,7 +16,7 @@
    "JGT" "001"
    "JEQ" "010"
    "JGE" "011"
-   "JLE" "100"
+   "JLT" "100"
    "JNE" "101"
    "JLE" "110"
    "JMP" "111"})
@@ -57,15 +57,15 @@
   [{:keys [dest comp jump]}]
   (let [dest-code (get dest-map dest)
         jump-code (get jump-map jump)
-        comp-code (get comp-map comp]
-        (str "111" comp-code dest-code jump-code)))
+        comp-code (get comp-map comp)]
+       (str "111" comp-code dest-code jump-code)))
 
 (defn translate-a-instruction
   "Generate machine language binaryrepresentation
   of the given A command"
   [{:keys [address]}]
   (let [bin-addr (util/convert-to-binary address)] 
-    (str "0" bin-addr))
+   (str "0" bin-addr)))
 
 (defn translate-instruction
   [{type :type :as instruction}]

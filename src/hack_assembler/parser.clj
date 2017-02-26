@@ -15,8 +15,8 @@
       (s/split #"//")                                       ; split instruction and comment
       first                                                 ; ignore comment
       s/trim                                                ; remove outer whitespace
-      (s/replace #"\s+" "")                                 ; remove internal whitespace
-      ))
+      (s/replace #"\s+" "")))                                 ; remove internal whitespace
+      
   
 (defn parse-instruction
   "parses the source assembly string into a command map
@@ -32,7 +32,7 @@
   "parses the source assembly into an A Instruction map
   containing the type A_COMMAND and the address part"
   [source]
-  (let [address (subs source 1)]
+  (let [address (Integer/parseInt (subs source 1))]
     {:type    "A_COMMAND"
      :address address}))
 

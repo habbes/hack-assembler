@@ -5,17 +5,24 @@
 (deftest extract-instruction-test
   (testing "instruction only"
     (let [instruction (extract-instruction "D=1;JMP")]
-      (is (= instruction "D=1;JMP"))))
+      (is (= instruction "D=1;JMP")))
+    (let [instruction (extract-instruction "@1")]
+         (is (= instruction "@1"))))
+    
   (testing "ignores comments"
     (let [instruction (extract-instruction "D=1;JMP// this is a comment")]
-      (is (= instruction "D=1;JMP"))))
+      (is (= instruction "D=1;JMP")))
+    (let [instruction (extract-instruction "@20// this is a comment")]
+         (is (= instruction "@20"))))
   (testing "ignores whitespace"
     (let [instruction (extract-instruction "  D=1;JMP  ")]
       (is (= instruction "D=1;JMP")))
     (let [instruction (extract-instruction "  D=1;  JMP")]
       (is (= instruction "D=1;JMP")))
     (let [instruction (extract-instruction "D = 1;JMP")]
-      (is (= instruction "D=1;JMP"))))
+      (is (= instruction "D=1;JMP")))
+    (let [instruction (extract-instruction "  @2405 ")]
+         (is (= instruction "@2405"))))
   (testing "ignores comments and whitespace"
     (let [instruction (extract-instruction "D = 1;JMP // this is a comment")]
       (is (= instruction "D=1;JMP"))))
@@ -34,7 +41,7 @@
     (is (= (:type (parse-a-instruction "@256")) "A_COMMAND")))
   (testing "gets address"
     (let [{:keys [address]} (parse-a-instruction "@1234")]
-      (is (= address "1234")))))
+      (is (= address 1234)))))
 
 (deftest parse-c-instruction-test
   (testing "command type is C_COMMAND"
@@ -67,11 +74,11 @@
   (testing "parse A instruction"
     (let [{:keys [type address]} (parse-instruction "@123")]
       (is (= type "A_COMMAND"))
-      (is (= address "123"))))
+      (is (= address 123))))
   (testing "parse C instruction")
-    (let [{:keys [type dest comp jump]} (parse-instruction "D=1")]
-      (is (= type "C_COMMAND"))
-      (is (= [dest comp jump] ["D" "1" nil])))
+  (let [{:keys [type dest comp jump]} (parse-instruction "D=1")]
+    (is (= type "C_COMMAND"))
+    (is (= [dest comp jump] ["D" "1" nil])))
   (testing "returns nil if instruction is empty"
     (let [instruction (parse-instruction "")]
       (is (= instruction nil)))))
@@ -80,7 +87,7 @@
   (testing "parse line with instruction"
     (let [{:keys [type address]} (parse-line " @123 // store address 123")]
       (is (= type "A_COMMAND"))
-      (is (= address "123")))
+      (is (= address 123)))
     (let [{:keys [type dest comp jump]} (parse-line " D=1 // store 1 in D")]
       (is (= type "C_COMMAND"))
       (is (= [dest comp jump] ["D" "1" nil]))))
