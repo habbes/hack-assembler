@@ -11,9 +11,9 @@
   "Translates a line of source assembly code into
   the corresponding machine binary string"
   [line ctx]
-  (let [[cmd ctx] (parser/parse-line line ctx) 
-        instruction (code/translate-instruction cmd)]
-    [instruction ctx]))
+  (if-let [[cmd parsed-ctx] (parser/parse-line line ctx)]
+    [(code/translate-instruction cmd) parsed-ctx]
+   [nil ctx]))
 
 (defn translate-source
   "Reads source code from the rdr and writes the resulting
@@ -24,7 +24,7 @@
       (if-let [line (nth lines count nil)]
         (if-let [[instruction updated-ctx] (translate-line line ctx)]
           (do
-            (.write wrtr (str instruction "\n"))
+            (if instruction (.write wrtr (str instruction "\n")))
             (recur (inc count) updated-ctx)))
         nil))))
 
@@ -39,7 +39,7 @@
         (recur
           (inc count)
           (parser/parse-line-first-pass line ctx))
-      nil)))
+       nil))))
        
 (defn -main
   "Reads the source assembly file passed in the arguments and outputs
@@ -58,4 +58,3 @@
            (println "Compiling to " output-file)
            (translate-source rdr wrtr ctx)
            (println "Operation complete."))))) 
-       

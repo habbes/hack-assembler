@@ -22,4 +22,3 @@
     "Replaces the context's symbol table with the specified table"
     [context table]
     (conj context [:symbol-table table]))
-    

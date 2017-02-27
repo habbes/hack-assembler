@@ -3,22 +3,39 @@
             [clojure.java.io :as io]
             [hack-assembler.core :refer :all]))
 
+(def sample-ctx {:line-number 10 :instruction-number 5 :symbol-table {:cur-var-address 16}})
+
 (deftest translate-line-test
   (testing "Translates line of source code to binary string"
-    (let [code (translate-line "@16 //test")]
-      (is (= "0000000000010000" code)))
-    (let [code (translate-line "  D=1 //test")]
-         (is (= "1110111111010000" code))))
+    (let [[code ctx] (translate-line "@16 //test" sample-ctx)]
+      (is (= "0000000000010000" code))
+      (is (= {:line-number 10
+              :instruction-number 5
+              :symbol-table {:cur-var-address 16}} ctx)))
+    (let [[code ctx] (translate-line "@i //test" sample-ctx)]
+      (is (= "0000000000010000" code))
+      (is (= {:line-number 10
+              :instruction-number 5
+              :symbol-table {:cur-var-address 17 "i" 16}} ctx)))
+    (let [[code ctx] (translate-line "  D=1 //test" sample-ctx)]
+      (is (= "1110111111010000" code))
+      (is (= {:line-number 10
+              :instruction-number 5
+              :symbol-table {:cur-var-address 16}} ctx))))
   (testing "Returns nil if no instruction in source"
-    (let [code (translate-line "//test")]
-         (is (= nil code)))
-    (let [code (translate-line "  ")]
-         (is (= nil code))))
+    (let [[code ctx] (translate-line "//test" sample-ctx)]
+       (is (= nil code))
+       (is (= ctx sample-ctx)))
+    (let [[code ctx] (translate-line "  " sample-ctx)]
+       (is (= nil code))
+       (is (= ctx sample-ctx))))
   (testing "Returns nil on syntax error"
-    (let [code (translate-line "A= //test")]
-         (is (= nil code)))
-    (let [code (translate-line "  D=1;")]
-         (is (= nil code)))))
+    (let [[code ctx] (translate-line "A= //test" sample-ctx)]
+       (is (= nil code))
+       (is (= ctx sample-ctx)))
+    (let [[code ctx] (translate-line "  D=1;" sample-ctx)]
+       (is (= nil code))
+       (is (= ctx sample-ctx)))))
 
 (deftest translate-source-test
   (testing "Translates source code from reader and write machine code output to writer"

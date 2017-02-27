@@ -49,5 +49,3 @@
               [table val] (resolve-symbol table "i")]
              (is (= val 16))
              (is (= table {:cur-var-address 17 "i" 16}))))) 
-            
-     

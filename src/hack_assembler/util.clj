@@ -9,8 +9,3 @@
     ([n width]
      (let [format (str "~" width ",'0',B")]
          (cl-format nil format n)))) 
-     
-     
-     
-    
-    
