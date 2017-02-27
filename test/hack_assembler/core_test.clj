@@ -42,20 +42,20 @@
   (testing "Translates source code from reader and write machine code output to writer"
     (let [in (io/reader (java.io.StringReader. "@2\nD=A;JMP\n@i\nM=A\n@END\n0;JMP\n(END)"))
           out (java.io.StringWriter.)
-          ctx {:instruction-number 1 :line-number 1 :symbol-table {:cur-var-address 16 "END" 7}}] 
+          ctx {:instruction-number 0 :line-number 1 :symbol-table {:cur-var-address 16 "END" 6}}] 
          (translate-source in out ctx)
          (let [output (.toString out)]
            (is (= (str "0000000000000010\n"
                        "1110110000010111\n"
                        "0000000000010000\n"
                        "1110110000001000\n"
-                       "0000000000000111\n"
+                       "0000000000000110\n"
                        "1110101010000111\n")
                 output)))))
   (testing "Translates source code containing comments and whitespace"
     (let [in (io/reader (java.io.StringReader. "//this is a test\n\n@var1\n@var2\n@2//set address to 2\nD=A;JMP\n@var1"))
           out (java.io.StringWriter.)
-          ctx {:instruction-number 1 :line-number 1 :symbol-table {:cur-var-address 16}}] 
+          ctx {:instruction-number 0 :line-number 1 :symbol-table {:cur-var-address 16}}] 
          (translate-source in out ctx)
          (let [output (.toString out)]
            (is (= (str "0000000000010000\n"
@@ -69,7 +69,7 @@
   (testing "Build symbol table populated with label addresses from source code"
     (let [in (io/reader (java.io.StringReader. 
                          "//test\n@i\n@j\n(START)//start\nD=1\n@END\n0;JMP\n(END)"))
-          ctx {:instruction-number 1 :line-number 1 :symbol-table {:cur-var-address 16}}
+          ctx {:instruction-number 0 :line-number 1 :symbol-table {:cur-var-address 16}}
           processed-ctx (preprocess-source in ctx)]
-         (is (= {:cur-var-address 16 "START" 3 "END" 7})))))
+         (is (= {:cur-var-address 16 "START" 2 "END" 6})))))
              

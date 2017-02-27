@@ -6,7 +6,7 @@
     (testing "Initializes context"
         (let [ctx (initialize-context {"SP" 0})]
             (is (= 1 (:line-number ctx)))
-            (is (= 1 (:instruction-number ctx)))
+            (is (= 0 (:instruction-number ctx)))
             (is (= {"SP" 0} (:symbol-table ctx))))))
 
 (deftest inc-instruction-test

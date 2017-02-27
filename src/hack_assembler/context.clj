@@ -5,7 +5,7 @@
     the supplied symbol table"
     [table]
     {:line-number 1
-     :instruction-number 1
+     :instruction-number 0
      :symbol-table table})
 
 (defn inc-instruction
