@@ -70,7 +70,7 @@
 (defn translate-instruction
   [{type :type :as instruction}]
   (case type
-    "A_COMMAND" (translate-a-instruction instruction)
+    "A_COMMAND" (translate-a-instruction instruction ctx)
     "C_COMMAND" (translate-c-instruction instruction)
     nil))
   

@@ -9,42 +9,37 @@
 (defn translate-line
   "Translates a line of source assembly code into
   the corresponding machine binary string"
-  [line]
-  (-> line
-    parser/parse-line
-    code/translate-instruction))
+  [line ctx]
+  (let [[cmd ctx] (parser/parse-line line ctx) 
+        instruction (code/translate-instruction cmd)]
+    [instruction ctx]))
 
 (defn translate-source
   "Reads source code from the rdr and writes the resulting
   binary code to wrtr"
-  [rdr wrtr]
-  (doseq [line (line-seq rdr)]
-    (if-let [instruction (translate-line line)]
-     (.write wrtr (str instruction "\n")))))
+  [rdr wrtr ctx]
+  (let [lines (line-seq rdr)]
+    (loop [count 0 ctx ctx]
+      (if-let [line (nth lines count nil)]
+        (if-let [[instruction updated-ctx] (translate-line line ctx)]
+          (do
+            (.write wrtr (str instruction "\n"))
+            (recur (inc count) updated-ctx)))
+        nil))))
 
-(defn preprocess
+(defn first-pass
   "Reads source code from rdr and preprocess
   it by populating symbol table with label address. Returns
   the updated context."
   [rdr ctx]
-  (let [line (line-seq rdr)]
-    (if-let [[_ ctx] (parser/parse-line-first-pass line ctx)]
-      (-> ctx
-          context/inc-line
-          context/inc-instruction))))
-
-(defn first-pass
-  ""
-  [rdr ctx]
   (let [lines (line-seq rdr)]
-    (loop [count 1 ctx ctx]
+    (loop [count 0 ctx ctx]
       (if-let [line (nth lines count nil)]
         (recur
           (inc count)
           (parser/parse-line-first-pass line ctx))
       nil)))
        
-
 (defn -main
   "Reads the source assembly file passed in the arguments and outputs
   a file containing the Hack machine code
@@ -59,6 +54,6 @@
        (with-open [rdr (io/reader source-file)]
          (with-open [wrtr (io/writer output-file)]
            (println "Compiling to " output-file)
-           (translate-source rdr wrtr)
+           (translate-source rdr wrtr ctx)
            (println "Operation complete."))))) 
        

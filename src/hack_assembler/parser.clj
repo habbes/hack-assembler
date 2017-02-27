@@ -1,6 +1,7 @@
 (ns hack-assembler.parser
   (:require [clojure.string :as s]
-            [clojure.context :as ctx]))
+            [hack-assembler.context :as context]
+            [hack-assembler.symbol-table :as symt]))
 
 ; regex used to parce an A instruction
 (def a-inst-re #"@([\w\:\.\$]+)")
@@ -25,63 +26,72 @@
 (defn parse-instruction
   "parses the source assembly string into a command map
   containing the type and parts of the instruction"
-  [source]
+  [source ctx]
   (if (= source "")
     nil
     (if (= (subs source 0 1) "@")
-      (parse-a-instruction source)
-      (parse-c-instruction source))))
+      (parse-a-instruction source ctx)
+      (parse-c-instruction source ctx))))
+
+(defn resolve-address
+  ""
+  [label {table :symbol-table :as ctx}]
+  (if (re-find #"^\d+$" address)
+    [(Integer/parseInt address) ctx]
+    (let [[table val] (symt/resolve-symbol table address)]
+        [val (conj context [:symbol-table table])])))
 
 (defn parse-a-instruction
   "parses the source assembly into an A Instruction map
   containing the type A_COMMAND and the address part"
-  [source]
+  [source ctx]
   (if-let [[_ label] (re-matches a-inst-re source)]
-    {:type    "A_COMMAND"
-     :address (Integer/parseInt label)} 
+    (let [[address ctx] (resolve-address label ctx)]
+      [{:type    "A_COMMAND"
+       :address address} ctx])
     nil))
 
 (defn parse-c-instruction
   "parses the source assembly string into a C Instruction map
   containing the type C_COMMAND and the dest, comp and jump parts"
-  [source]
+  [source ctx]
   (if-let [[_ dest comp jump] (re-matches c-inst-re source)]
-    {:type "C_COMMAND"
-     :dest dest
-     :comp comp
-     :jump jump} 
+    [{:type "C_COMMAND"
+      :dest dest
+      :comp comp
+      :jump jump} ctx]
     nil))
 
 (defn parse-line
   "Parses an instruction from source line. If the line contains
   a command, a command map is returned. If the line contains
   only comments or whitespace, nil is returned"
-  [source]
+  [source ctx]
   (-> source
       extract-instruction
-      parse-instruction))
+      parse-instruction ctx))
 
 (defn parse-l-instruction-first-pass
   "Parses the source assembly if it's label pseudocommand (LOOP).
-  Returns the updated context"
-  [source {:keys [line-number instruction-number symbol-table] :as context}]
+  Returns the updated ctx"
+  [source {:keys [line-number instruction-number symbol-table] :as ctx}]
   (if-let [[_ label] (re-matches l-inst-re source)]
-      (-> context
-          (ctx/update-table conj [label (inc instruction-number)]))        
-      context))
+      (-> ctx
+          (context/update-table conj [label (inc instruction-number)]))        
+      ctx))
 
 (defn parse-instruction-first-pass
   "Parses the assembly source for the first pass, to save address of labels"
-  [source context]
+  [source ctx]
   (if (= source "")
-    context
+    ctx
     (if (= (subs source 0 1) "(")
-        (parse-l-instruction-firstpass source context)
-        context))
+        (parse-l-instruction-firstpass source ctx)
+        ctx))
 
 (defn parse-line-first-pass
   "Parses line of assembly source during the first pass, considering only label
   pseudo-commands"
-  [source context]
+  [source ctx]
   (let [extracted (extract-instruction source)]
-    (parse-instruction-first-pass extracted context)))
+    (parse-instruction-first-pass extracted ctx)))
