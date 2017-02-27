@@ -85,13 +85,15 @@
   [source ctx]
   (if (= source "")
     ctx
-    (if (= (subs source 0 1) "(")
-        (parse-l-instruction-first-pass source ctx)
-     ctx)))
+    (let [parsed-ctx (if (= (subs source 0 1) "(")
+                      (parse-l-instruction-first-pass source ctx)
+                      ctx)]
+     (context/inc-instruction parsed-ctx))))
 
 (defn parse-line-first-pass
   "Parses line of assembly source during the first pass, considering only label
   pseudo-commands"
   [source ctx]
-  (let [extracted (extract-instruction source)]
-    (parse-instruction-first-pass extracted ctx)))
+  (let [extracted (extract-instruction source) 
+        parsed-ctx (parse-instruction-first-pass extracted ctx)]
+    (context/inc-line parsed-ctx)))

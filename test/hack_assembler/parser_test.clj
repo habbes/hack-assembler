@@ -102,3 +102,32 @@
       (is (= instruction nil)))
     (let [instruction (parse-line "   " sample-ctx)]
       (is (= instruction nil)))))
+
+(deftest parse-l-instruction-first-pass-test
+  (testing "Maps label to next instruction number in symbol table and returns context"
+    (let [ctx (parse-l-instruction-first-pass "(END)" sample-ctx)
+          {orig-inst :instruction-number orig-line :line-number} sample-ctx]
+      (is (= {:instruction-number 10
+              :line-number 12
+              :symbol-table {:cur-var-address 16 "LOOP" 23 "END" 11}}))))
+  (testing "Returns original context when empty instruction is supplied"
+    (let [ctx (parse-l-instruction-first-pass "" sample-ctx)]
+      (is (= ctx sample-ctx)))))
+
+(deftest parse-instruction-first-pass-test
+  (testing "Parses label pseudo-command and increment instruction number"
+    (let [ctx (parse-instruction-first-pass "(START)" sample-ctx)]
+      (is (= {:instruction-number 11
+              :line-number 12
+              :symbol-table {:cur-var-address 16 "LOOP" 23 "START" 11}}
+             ctx))))
+  (testing "Only increment instruction number for other commands"
+    (let [ctx (parse-instruction-first-pass "@200" sample-ctx)]
+      (is (= {:instruction-number 11
+              :line-number 12
+              :symbol-table {:cur-var-address 16 "LOOP" 23}}))))
+  (testing "Do not modify context for empty instruction"
+    (let [ctx (parse-instruction-first-pass "" sample-ctx)]
+      (is (= {:instruction-number 10
+              :line-number 12
+              :symbol-table {:cur-var-address 16 "LOOP" 23}})))))
