@@ -36,10 +36,10 @@
 (defn resolve-address
   ""
   [label {table :symbol-table :as ctx}]
-  (if (re-find #"^\d+$" address)
-    [(Integer/parseInt address) ctx]
-    (let [[table val] (symt/resolve-symbol table address)]
-        [val (conj context [:symbol-table table])])))
+  (if (re-find #"^\d+$" label)
+    [(Integer/parseInt label) ctx]
+    (let [[table address] (symt/resolve-symbol table label)]
+        [address (conj ctx [:symbol-table table])])))
 
 (defn parse-a-instruction
   "parses the source assembly into an A Instruction map
@@ -48,7 +48,7 @@
   (if-let [[_ label] (re-matches a-inst-re source)]
     (let [[address ctx] (resolve-address label ctx)]
       [{:type    "A_COMMAND"
-       :address address} ctx])
+        :address address} ctx])
     nil))
 
 (defn parse-c-instruction
@@ -69,15 +69,15 @@
   [source ctx]
   (-> source
       extract-instruction
-      parse-instruction ctx))
+      (parse-instruction ctx)))
 
 (defn parse-l-instruction-first-pass
   "Parses the source assembly if it's label pseudocommand (LOOP).
   Returns the updated ctx"
   [source {:keys [line-number instruction-number symbol-table] :as ctx}]
   (if-let [[_ label] (re-matches l-inst-re source)]
-      (-> ctx
-          (context/update-table conj [label (inc instruction-number)]))        
+      (let [table (conj (:symbol-table ctx) [label (inc instruction-number)])]
+          (context/update-table ctx table))       
       ctx))
 
 (defn parse-instruction-first-pass
@@ -86,8 +86,8 @@
   (if (= source "")
     ctx
     (if (= (subs source 0 1) "(")
-        (parse-l-instruction-firstpass source ctx)
-        ctx))
+        (parse-l-instruction-first-pass source ctx)
+     ctx)))
 
 (defn parse-line-first-pass
   "Parses line of assembly source during the first pass, considering only label

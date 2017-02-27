@@ -26,3 +26,12 @@
                      :line-number 326
                      :symbol-table {}} 
                     new-ctx)))))
+
+(deftest update-table-test
+    (testing "Updates symbol table"
+        (let [ctx {:instruction-number 20 :line-number 32 :symbol-table {:test 2}}
+              new-ctx (update-table ctx {:test 100 "a" "b"})]
+             (is (= {:instruction-number 20
+                     :line-number 32
+                     :symbol-table {:test 100 "a" "b"}} 
+                    new-ctx)))))
