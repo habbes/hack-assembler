@@ -3,7 +3,8 @@
             [clojure.java.io :as io]
             [hack-assembler.parser :as parser]
             [hack-assembler.code :as code]
-            [hack-assembler.context :as context])
+            [hack-assembler.context :as context]
+            [hack-assembler.symbol-table :as symt])
   (:gen-class))
 
 (defn translate-line
@@ -49,7 +50,8 @@
                   (str/split #"\.")
                   first)
         output-file (str filename ".hack")
-        ctx (context/initialize-context)
+        table (symt/initialize-table)
+        ctx (context/initialize-context table)
         ctx (with-open [rdr (io/reader source-file)] (first-pass rdr ctx))]
        (with-open [rdr (io/reader source-file)]
          (with-open [wrtr (io/writer output-file)]
