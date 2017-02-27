@@ -22,10 +22,9 @@
   (let [lines (line-seq rdr)]
     (loop [count 0 ctx ctx]
       (if-let [line (nth lines count nil)]
-        (if-let [[instruction updated-ctx] (translate-line line ctx)]
-          (do
-            (if instruction (.write wrtr (str instruction "\n")))
-            (recur (inc count) updated-ctx)))
+        (let [[instruction updated-ctx] (translate-line line ctx)]
+          (if instruction (.write wrtr (str instruction "\n")))
+          (recur (inc count) updated-ctx))
         nil))))
 
 (defn preprocess-source
@@ -39,7 +38,7 @@
         (recur
           (inc count)
           (parser/parse-line-first-pass line ctx))
-       nil))))
+       ctx))))
        
 (defn -main
   "Reads the source assembly file passed in the arguments and outputs
@@ -52,9 +51,9 @@
         output-file (str filename ".hack")
         table (symt/initialize-table)
         ctx (context/initialize-context table)
-        ctx (with-open [rdr (io/reader source-file)] (preprocess-source rdr ctx))]
+        processed-ctx (with-open [rdr (io/reader source-file)] (preprocess-source rdr ctx))]
        (with-open [rdr (io/reader source-file)]
          (with-open [wrtr (io/writer output-file)]
            (println "Compiling to " output-file)
-           (translate-source rdr wrtr ctx)
+           (translate-source rdr wrtr processed-ctx)
            (println "Operation complete."))))) 
