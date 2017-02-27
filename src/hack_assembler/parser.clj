@@ -73,10 +73,11 @@
 
 (defn parse-l-instruction-first-pass
   "Parses the source assembly if it's label pseudocommand (LOOP).
-  Returns the updated ctx"
+  Maps the parsed label to the current instruction number in the context's
+  symbol table"
   [source {:keys [line-number instruction-number symbol-table] :as ctx}]
   (if-let [[_ label] (re-matches l-inst-re source)]
-      (let [table (conj (:symbol-table ctx) [label (inc instruction-number)])]
+      (let [table (conj (:symbol-table ctx) [label instruction-number])]
           (context/update-table ctx table))       
       ctx))
 
@@ -85,10 +86,9 @@
   [source ctx]
   (if (= source "")
     ctx
-    (let [parsed-ctx (if (= (subs source 0 1) "(")
-                      (parse-l-instruction-first-pass source ctx)
-                      ctx)]
-     (context/inc-instruction parsed-ctx))))
+    (if (= (subs source 0 1) "(")
+     (parse-l-instruction-first-pass source ctx)
+     (context/inc-instruction ctx))))
 
 (defn parse-line-first-pass
   "Parses line of assembly source during the first pass, considering only label

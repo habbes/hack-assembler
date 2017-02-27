@@ -28,7 +28,7 @@
             (recur (inc count) updated-ctx)))
         nil))))
 
-(defn first-pass
+(defn preprocess-source
   "Reads source code from rdr and preprocess
   it by populating symbol table with label address. Returns
   the updated context."
@@ -52,7 +52,7 @@
         output-file (str filename ".hack")
         table (symt/initialize-table)
         ctx (context/initialize-context table)
-        ctx (with-open [rdr (io/reader source-file)] (first-pass rdr ctx))]
+        ctx (with-open [rdr (io/reader source-file)] (preprocess-source rdr ctx))]
        (with-open [rdr (io/reader source-file)]
          (with-open [wrtr (io/writer output-file)]
            (println "Compiling to " output-file)
