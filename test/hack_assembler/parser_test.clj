@@ -106,7 +106,10 @@
       (is (= address 123)))
     (let [[{:keys [type dest comp jump]} ctx] (parse-line " D=1 // store 1 in D" sample-ctx)]
       (is (= type "C_COMMAND"))
-      (is (= [dest comp jump] ["D" "1" nil]))))
+      (is (= [dest comp jump] ["D" "1" nil])))
+    (let [[{:keys [type dest comp jump]} ctx] (parse-line "M=!M" sample-ctx)]
+     (is (= type "C_COMMAND"))
+     (is (= [dest comp jump] ["M" "!M" nil]))))
   (testing "parse line without instruction, returns nil"
     (let [instruction (parse-line "// this is a test" sample-ctx)]
       (is (= instruction nil)))

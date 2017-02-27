@@ -6,7 +6,7 @@
 ; regex used to parce an A instruction
 (def a-inst-re #"@([\w\:\.\$]+)")
 ; regex used to parse a C instruction
-(def c-inst-re #"(?:([AMD]{1,3})\=)?([AMD01+\-]+)(?:;([A-Z]{3}))?")
+(def c-inst-re #"(?:([AMD]{1,3})\=)?([AMD01+\-\!\|\&]+)(?:;([A-Z]{3}))?")
 ; regex used to parse an L pseudocommand
 (def l-inst-re #"\(([\w\:\.\$]+)\)")
 
