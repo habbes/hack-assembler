@@ -37,18 +37,27 @@
        (is (= nil code))
        (is (= ctx sample-ctx)))))
 
+(def sample-ctx-2 {:instruction-number 1 :line-number 1 :symbol-table {:cur-var-address 16 "END" 7}})
 (deftest translate-source-test
   (testing "Translates source code from reader and write machine code output to writer"
-    (let [in (io/reader (java.io.StringReader. "@2\nD=A;JMP"))
+    (let [in (io/reader (java.io.StringReader. "@2\nD=A;JMP\n@i\nM=A\n@END\n0;JMP\n(END)"))
           out (java.io.StringWriter.)]
-         (translate-source in out)
+         (translate-source in out sample-ctx-2)
          (let [output (.toString out)]
-           (is (= "0000000000000010\n1110110000010111\n" output)))))
+           (is (= (str "0000000000000010\n"
+                       "1110110000010111\n"
+                       "0000000000010000\n"
+                       "1110110000001000\n"
+                       "0000000000000111\n"
+                       "1110101010000111\n")
+                output)))))
   (testing "Translates source code containing comments and whitespace"
     (let [in (io/reader (java.io.StringReader. "//this is a test\n\n@2//set address to 2\nD=A;JMP"))
           out (java.io.StringWriter.)]
-         (translate-source in out)
+         (translate-source in out sample-ctx-2)
          (let [output (.toString out)]
-           (is (= "0000000000000010\n1110110000010111\n" output))))))
+           (is (= (str "0000000000000010\n"
+                       "1110110000010111\n") 
+                  output))))))
          
     
