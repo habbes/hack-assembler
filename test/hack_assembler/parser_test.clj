@@ -47,7 +47,17 @@
   (testing "Resolves constant address"
     (let [[{:keys [address]} ctx] (parse-a-instruction "@1234" sample-ctx)]
       (is (= address 1234))
-      (is (= ctx sample-ctx)))))
+      (is (= ctx sample-ctx))))
+  (testing "Resolves existing symbol"
+    (let [[{:keys [address]} ctx] (parse-a-instruction "@LOOP" sample-ctx)]
+      (is (= address 23))
+      (is (= ctx sample-ctx))))
+  (testing "Resolves non-existing variable symbol"
+    (let [[{:keys [address]} ctx] (parse-a-instruction "@i" sample-ctx)]
+      (is (= address 16))
+      (is (= ctx {:instruction-number 10
+                  :line-number 12
+                  :symbol-table {:cur-var-address 17 "LOOP" 23 "i" 16}})))))
 
 (deftest parse-c-instruction-test
   (testing "command type is C_COMMAND"
@@ -131,3 +141,23 @@
       (is (= {:instruction-number 10
               :line-number 12
               :symbol-table {:cur-var-address 16 "LOOP" 23}})))))
+
+(deftest parse-line-first-pass-test
+  (testing "Parses label pseudo-command and increments line and instruction numbers"
+    (let [ctx (parse-line-first-pass "  (START) //test" sample-ctx)]
+      (is (= {:instruction-number 11
+              :line-number 13
+              :symbol-table {:cur-var-address 16 "LOOP" 23 "START" 11}}
+             ctx))))
+  (testing "Increments line and instruction numbers for other commands"
+   (let [ctx (parse-line-first-pass " D=1;JMP //test" sample-ctx)]
+     (is (= {:instruction-number 11
+             :line-number 13
+             :symbol-table {:cur-var-address 16 "LOOP" 23}}
+            ctx))))
+  (testing "Only increment line-number for lines with only comments or whitespace"
+   (let [ctx (parse-line-first-pass "  //test" sample-ctx)]
+     (is (= {:instruction-number 10
+             :line-number 13
+             :symbol-table {:cur-var-address 16 "LOOP" 23}}
+            ctx)))))
